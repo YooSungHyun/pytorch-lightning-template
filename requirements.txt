@@ -1,5 +1,5 @@
-torch
-pytorch-lightning
+torch==1.13.0
+pytorch-lightning==1.8.3.post0
 pandas
 numpy
 setproctitle
