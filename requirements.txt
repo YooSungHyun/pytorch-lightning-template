@@ -1,0 +1,10 @@
+torch
+pytorch-lightning
+pandas
+numpy
+setproctitle
+wandb
+flake8
+black
+tqdm
+scikit-learn
