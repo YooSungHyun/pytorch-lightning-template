@@ -23,6 +23,7 @@ python3 ./train.py \
     --weight_decay=0.0001 \
     --warmup_ratio=0.2 \
     --ratio=0.2 \
+    --div_factor=10 \
     --final_div_factor=10 \
     --input_dense_dim=512 \
     --output_dense_dim=256

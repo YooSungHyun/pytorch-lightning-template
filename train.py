@@ -57,7 +57,10 @@ if __name__ == "__main__":
         "--warmup_ratio", default=0.2, type=float, help="learning rate scheduler warmup ratio per EPOCH"
     )
     parser.add_argument("--max_lr", default=0.01, type=float, help="lr_scheduler max learning rate")
-    parser.add_argument("--final_div_factor", default=1e4, type=int, help="(max_lr/25)*final_div_factor is final lr")
+    parser.add_argument("--div_factor", default=25, type=int, help="initial_lr = max_lr/div_factor")
+    parser.add_argument(
+        "--final_div_factor", default=1e4, type=int, help="(max_lr/div_factor)*final_div_factor is final lr"
+    )
     parser.add_argument("--weight_decay", default=0.0001, type=float, help="weigth decay")
     parser.add_argument(
         "--per_device_train_batch_size", default=1, type=int, help="The batch size per GPU/TPU core/CPU for training."
