@@ -5,8 +5,8 @@ boring boiling code rolling ⚡ </br>
 - Model more detail: [PyTorch-Lightning Dev Guide](https://pytorch-lightning.readthedocs.io/en/stable/common/lightning_module.html)
 - Inference more detail: [PyTorch-Lightning Dev Guide](https://pytorch-lightning.readthedocs.io/en/stable/deploy/production_intermediate.html)
 - WanDB with lightning more detail
-    - [Weight & Bias Dev Guid 1](https://wandb.ai/wandb_fc/korean/reports/Weights-Biases-Pytorch-Lightning---VmlldzozNzAxOTg)
-    - [Weight & Bias Dev Guid 2](https://docs.wandb.ai/guides/integrations/lightning)
+    - [Weight & Bias Dev Guide 1](https://wandb.ai/wandb_fc/korean/reports/Weights-Biases-Pytorch-Lightning---VmlldzozNzAxOTg)
+    - [Weight & Bias Dev Guide 2](https://docs.wandb.ai/guides/integrations/lightning)
 
 # Training Detail
 - Using DDP, Not DP or CPU</br>
