@@ -8,6 +8,9 @@ boring boiling code rolling ⚡ </br>
     - [Weight & Bias Dev Guide 1](https://wandb.ai/wandb_fc/korean/reports/Weights-Biases-Pytorch-Lightning---VmlldzozNzAxOTg)
     - [Weight & Bias Dev Guide 2](https://docs.wandb.ai/guides/integrations/lightning)
 
+# WanDB
+https://docs.wandb.ai/v/ko/quickstart
+
 # Training Detail
 - Using DDP, Not DP or CPU</br>
     Maybe want to using DP or CPU, Change some argument or python Script</br>
