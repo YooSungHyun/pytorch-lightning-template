@@ -6,7 +6,8 @@ from datetime import timedelta
 from pytorch_lightning.callbacks import ModelCheckpoint
 from pytorch_lightning.loggers import WandbLogger
 from pytorch_lightning.callbacks import LearningRateMonitor
-from model import CustomNet
+from dense_model import CustomNet
+from rnn_model import LSTMModel
 from datamodule import CustomDataModule
 
 
@@ -14,17 +15,6 @@ def main(hparams):
     wandb_logger = WandbLogger(project="lightning-template", name="default", save_dir="./")
     pl.seed_everything(hparams.seed)
 
-    ncf_datamodule = CustomDataModule(hparams)
-    model = CustomNet(hparams)
-    # TODO If finetuning follow this line
-    # PreTrainedLightningModule.load_state_dict(
-    #     torch.load(
-    #         "",
-    #         map_location="cuda",
-    #     ),
-    #     strict=False,
-    # )
-    wandb_logger.watch(model, log="all")
     hparams.logger = wandb_logger
 
     checkpoint_callback = ModelCheckpoint(
@@ -39,8 +29,26 @@ def main(hparams):
 
     if hparams.strategy == "ddp":
         hparams.strategy = DDPStrategy(timeout=timedelta(days=30))
+
     trainer = pl.Trainer.from_argparse_args(hparams)
-    trainer.fit(model, datamodule=ncf_datamodule)
+
+    if hparams.model_select == "linear":
+        ncf_datamodule = CustomDataModule(hparams)
+        model = CustomNet(hparams)
+        wandb_logger.watch(model, log="all")
+        trainer.fit(model, datamodule=ncf_datamodule)
+    else:
+        model = LSTMModel(truncated_bptt_steps=hparams.truncated_bptt_steps, valid_on_cpu=hparams.valid_on_cpu)
+        wandb_logger.watch(model, log="all")
+        trainer.fit(model)
+    # TODO If finetuning follow this line
+    # PreTrainedLightningModule.load_state_dict(
+    #     torch.load(
+    #         "",
+    #         map_location="cuda",
+    #     ),
+    #     strict=False,
+    # )
     checkpoint_callback.best_model_path
 
 
@@ -74,5 +82,7 @@ if __name__ == "__main__":
     parser.add_argument(
         "--valid_on_cpu", default=False, type=str2bool, help="If you want to run validation_step on cpu -> true"
     )
+    parser.add_argument("--model_select", default="linear", type=str, help="linear or rnn")
+    parser.add_argument("--truncated_bptt_steps", default=1, type=int, help="TBPTT step size")
     args = parser.parse_args()
     main(args)

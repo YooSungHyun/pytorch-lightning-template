@@ -15,7 +15,7 @@ torchrun --standalone --nnodes=1 --nproc_per_node=1 ./train.py \
     --max_epochs=25 \
     --log_every_n_steps=100 \
     --accelerator=gpu \
-    --strategy="ddp" \
+    --strategy=ddp \
     --num_nodes=1 \
     --replace_sampler_ddp=false \
     --devices=1 \
@@ -30,4 +30,6 @@ torchrun --standalone --nnodes=1 --nproc_per_node=1 ./train.py \
     --final_div_factor=10 \
     --input_dense_dim=512 \
     --output_dense_dim=256 \
-    --valid_on_cpu=true
+    --valid_on_cpu=true \
+    --model_select=rnn \
+    --truncated_bptt_steps=1

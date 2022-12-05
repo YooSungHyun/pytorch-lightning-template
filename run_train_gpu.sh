@@ -27,4 +27,6 @@ python3 ./train.py \
     --final_div_factor=10 \
     --input_dense_dim=512 \
     --output_dense_dim=256 \
-    --valid_on_cpu=false
+    --valid_on_cpu=false \
+    --model_select=rnn \
+    --truncated_bptt_steps=2

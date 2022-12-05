@@ -9,8 +9,6 @@ class CustomNet(pl.LightningModule):
         super().__init__()
         self.save_hyperparameters(args)
         self.args = args
-        # TODO: If you want to learn eval metric on cpu. just use compute_on_cpu=True
-        # and follow validation_step
         self.loss_func = MeanSquaredError(compute_on_cpu=self.args.valid_on_cpu)
         # TODO: Write down your network
         self.dense_batch_fc_tanh = nn.Sequential(
@@ -36,6 +34,9 @@ class CustomNet(pl.LightningModule):
         return {"loss": loss}
 
     def validation_step(self, batch, batch_idx):
+        # lightning do sanity eval step first before going training_step. for check your mistake.
+        # I always make mistake on validation logic, so this is good
+        # If don't use check this url. https://github.com/Lightning-AI/lightning/issues/2295
         features, labels, feature_lengths, label_lengths = batch
         if self.args.valid_on_cpu:
             features = features.cpu()
@@ -49,17 +50,11 @@ class CustomNet(pl.LightningModule):
         return {"loss": loss}
 
     def validation_epoch_end(self, validation_step_outputs):
-        """validation_epoch_end
-        2. if ddp, each machine output must gather. and lightning can gather only on-gpu items
-            self.log("val_loss", loss_mean.cuda(), sync_dist=True)
-            self.cuda() -> model have to training_step on cuda
-
-        Args:
-            batch (_type_): validation datasets batch
-            batch_idx (_type_): batch's index
-
-        """
         loss_mean = torch.tensor([x["loss"] for x in validation_step_outputs], device=self.device).mean()
+
+        # sync_dist use follow this url
+        # if using torchmetrics -> https://torchmetrics.readthedocs.io/en/stable/
+        # if not using torchmetrics -> https://github.com/Lightning-AI/lightning/discussions/6501
         if self.args.valid_on_cpu:
             # if ddp, each machine output must gather. and lightning can gather only on-gpu items
             self.log("val_loss", loss_mean.cuda(), sync_dist=True)
