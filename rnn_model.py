@@ -21,16 +21,23 @@ class LSTMModel(LightningModule):
         self.automatic_optimization = True
 
     def configure_optimizers(self):
-        return torch.optim.SGD(self.parameters(), lr=0.01)
+        optimizer = torch.optim.AdamW(
+            [{"params": [p for p in self.parameters()], "name": "OneCycleLR"}],
+            lr=self.args.learning_rate,
+            weight_decay=self.args.weight_decay,
+        )
+        scheduler = torch.optim.lr_scheduler.OneCycleLR(
+            optimizer,
+            max_lr=self.args.max_lr,
+            total_steps=self.trainer.estimated_stepping_batches,
+            pct_start=self.args.warmup_ratio,
+            epochs=self.trainer.max_epochs,
+            final_div_factor=self.args.final_div_factor,
+        )
+        lr_scheduler = {"interval": "step", "scheduler": scheduler, "name": "AdamW"}
+        return {"optimizer": optimizer, "lr_scheduler": lr_scheduler}
 
-    def training_step(self, batch, batch_idx, hiddens):
-        # batch_idx: Original step indices, Not TBPTT index (1 step == 1 batch)
-        # hiddens: TBPTT use backwards each sequence using this data
-
-        # On tbptt, backpropagation is used CHUNK by long sequence. when if using 200 sequence and 100 step chunk,
-        # training_step is needed 2 step for 1 batch (1 step: 0~99, 2 step: 100~199)
-        # very cleverly, we just using hiddens parameter, lightning's tbptt not connected new batch's hiddens to past one
-        x, y = batch
+    def forward(self, x, hiddens=None):
         if hiddens is not None:
             hiddens1, hiddens2 = hiddens
         else:
@@ -40,6 +47,17 @@ class LSTMModel(LightningModule):
         lstm2_last, hiddens2 = self.lstm2(x, hiddens2)
         concat_lstm = torch.concat([lstm_last, lstm2_last], dim=-1)
         logits = self.linear(concat_lstm)
+        return logits, hiddens1, hiddens2
+
+    def training_step(self, batch, batch_idx, hiddens):
+        # batch_idx: Original step indices, Not TBPTT index (1 step == 1 batch)
+        # hiddens: TBPTT use backwards each sequence using this data
+
+        # On tbptt, backpropagation is used CHUNK by long sequence. when if using 200 sequence and 100 step chunk,
+        # training_step is needed 2 step for 1 batch (1 step: 0~99, 2 step: 100~199)
+        # very cleverly, we just using hiddens parameter, lightning's tbptt not connected new batch's hiddens to past one
+        x, y = batch
+        logits, hiddens1, hiddens2 = self(x, hiddens)
         loss = self.loss_func(logits, y)
         self.log("train_loss", loss, sync_dist=(self.device != "cpu"))
         # look this discussion for tbptt experiment (https://github.com/Lightning-AI/lightning/discussions/15643)
@@ -69,13 +87,13 @@ class LSTMModel(LightningModule):
             self.log("val_loss", loss, sync_dist=(self.device != "cpu"))
 
     def train_dataloader(self):
-        dataset = TensorDataset(torch.rand(50, 200, self.input_size), torch.rand(50, 200, self.input_size))
+        dataset = TensorDataset(torch.rand(2000, 200, self.input_size), torch.rand(2000, 200, self.input_size))
         return DataLoader(
             dataset=dataset, num_workers=self.args.num_workers, batch_size=self.args.per_device_train_batch_size
         )
 
     def val_dataloader(self):
-        dataset = TensorDataset(torch.rand(50, 200, self.input_size), torch.rand(50, 200, self.input_size))
+        dataset = TensorDataset(torch.rand(2000, 200, self.input_size), torch.rand(2000, 200, self.input_size))
         return DataLoader(
             dataset=dataset, num_workers=self.args.num_workers, batch_size=self.args.per_device_eval_batch_size
         )

@@ -13,7 +13,7 @@ torchrun --standalone --nnodes=1 --nproc_per_node=1 ./train.py \
     --val_check_interval=0.25 \
     --accumulate_grad_batches=1 \
     --max_epochs=25 \
-    --log_every_n_steps=100 \
+    --log_every_n_steps=1 \
     --accelerator=gpu \
     --strategy=ddp \
     --num_nodes=1 \

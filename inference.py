@@ -1,15 +1,21 @@
 import argparse
 import torch
 import pytorch_lightning as pl
-from model import CustomNet
+from dense_model import CustomNet
+from rnn_model import LSTMModel
+from utils import str2bool
 
 
 def main(hparams):
     pl.seed_everything(hparams.seed)
 
-    model = CustomNet.load_from_checkpoint(hparams.model_path, args=hparams)
+    if hparams.model_select == "linear":
+        model = CustomNet.load_from_checkpoint(hparams.model_path, args=hparams)
+        features = torch.randn(1, 512)
+    else:
+        model = LSTMModel.load_from_checkpoint(hparams.model_path, args=hparams)
+        features = torch.randn(200, 1)
     model.eval()
-    features = torch.randn(1, 512)
     with torch.no_grad():
         logits = model(features)
     print(logits)
@@ -23,5 +29,10 @@ if __name__ == "__main__":
     parser.add_argument("--model_path", type=str, help="model output path")
     parser.add_argument("--input_dense_dim", default=512, type=int, help="input network dimension")
     parser.add_argument("--output_dense_dim", default=256, type=int, help="output network dimension")
+    parser.add_argument("--model_select", default="linear", type=str, help="linear or rnn")
+    parser.add_argument("--truncated_bptt_steps", default=1, type=int, help="TBPTT step size")
+    parser.add_argument(
+        "--valid_on_cpu", default=False, type=str2bool, help="If you want to run validation_step on cpu -> true"
+    )
     args = parser.parse_args()
     main(args)

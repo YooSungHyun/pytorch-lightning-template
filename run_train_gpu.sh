@@ -12,7 +12,7 @@ python3 ./train.py \
     --val_check_interval=0.25 \
     --accumulate_grad_batches=1 \
     --max_epochs=25 \
-    --log_every_n_steps=100 \
+    --log_every_n_steps=1 \
     --accelerator=gpu \
     --replace_sampler_ddp=false \
     --devices=1 \
