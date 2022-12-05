@@ -11,7 +11,7 @@ class CustomNet(pl.LightningModule):
         self.args = args
         # TODO: If you want to learn eval metric on cpu. just use compute_on_cpu=True
         # and follow validation_step
-        self.loss_func = MeanSquaredError(compute_on_cpu=False)
+        self.loss_func = MeanSquaredError(compute_on_cpu=self.args.valid_on_cpu)
         # TODO: Write down your network
         self.dense_batch_fc_tanh = nn.Sequential(
             nn.Linear(args.input_dense_dim, args.output_dense_dim),
@@ -36,23 +36,13 @@ class CustomNet(pl.LightningModule):
         return {"loss": loss}
 
     def validation_step(self, batch, batch_idx):
-        """validation_step
-        if you want to run validation_step on cpu, follow this,
-        1. All variable move to cpu
-            features.cpu()
-            labels.cpu()
-            feature_lengths.cpu()
-            label_lengths.cpu()
-        2. model move to cpu
-            self.cpu()
-        3. eval step going
-
-        Args:
-            batch (_type_): validation datasets batch
-            batch_idx (_type_): batch's index
-
-        """
         features, labels, feature_lengths, label_lengths = batch
+        if self.args.valid_on_cpu:
+            features = features.cpu()
+            labels = labels.cpu()
+            feature_lengths = feature_lengths.cpu()
+            label_lengths = label_lengths.cpu()
+            self.cpu()
         logits = self(features)
         loss = self.loss_func(logits, labels)
 
@@ -60,8 +50,6 @@ class CustomNet(pl.LightningModule):
 
     def validation_epoch_end(self, validation_step_outputs):
         """validation_epoch_end
-        if you want to run validation_step on cpu, follow this,
-        1. your validation_step_outputs is already on cpu
         2. if ddp, each machine output must gather. and lightning can gather only on-gpu items
             self.log("val_loss", loss_mean.cuda(), sync_dist=True)
             self.cuda() -> model have to training_step on cuda
@@ -72,7 +60,13 @@ class CustomNet(pl.LightningModule):
 
         """
         loss_mean = torch.tensor([x["loss"] for x in validation_step_outputs], device=self.device).mean()
-        self.log("val_loss", loss_mean, sync_dist=(self.device != "cpu"))
+        if self.args.valid_on_cpu:
+            # if ddp, each machine output must gather. and lightning can gather only on-gpu items
+            self.log("val_loss", loss_mean.cuda(), sync_dist=True)
+            # model have to training_step on cuda
+            self.cuda()
+        else:
+            self.log("val_loss", loss_mean, sync_dist=(self.device != "cpu"))
         # self.log_dict(metrics, sync_dist=(self.device != "cpu"))
 
     def configure_optimizers(self):

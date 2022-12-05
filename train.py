@@ -1,5 +1,5 @@
 import argparse
-import torch
+from utils import str2bool
 import pytorch_lightning as pl
 from pytorch_lightning.strategies import DDPStrategy
 from datetime import timedelta
@@ -37,7 +37,8 @@ def main(hparams):
     lr_monitor = LearningRateMonitor(logging_interval="step")
     hparams.callbacks = [checkpoint_callback, lr_monitor]
 
-    hparams.strategy = DDPStrategy(timeout=timedelta(days=30))
+    if hparams.strategy == "ddp":
+        hparams.strategy = DDPStrategy(timeout=timedelta(days=30))
     trainer = pl.Trainer.from_argparse_args(hparams)
     trainer.fit(model, datamodule=ncf_datamodule)
     checkpoint_callback.best_model_path
@@ -70,5 +71,8 @@ if __name__ == "__main__":
     )
     parser.add_argument("--input_dense_dim", default=512, type=int, help="input network dimension")
     parser.add_argument("--output_dense_dim", default=256, type=int, help="output network dimension")
+    parser.add_argument(
+        "--valid_on_cpu", default=False, type=str2bool, help="If you want to run validation_step on cpu -> true"
+    )
     args = parser.parse_args()
     main(args)

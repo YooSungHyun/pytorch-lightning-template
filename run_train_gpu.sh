@@ -26,4 +26,5 @@ python3 ./train.py \
     --div_factor=10 \
     --final_div_factor=10 \
     --input_dense_dim=512 \
-    --output_dense_dim=256
+    --output_dense_dim=256 \
+    --valid_on_cpu=false
