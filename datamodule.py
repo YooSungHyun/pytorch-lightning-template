@@ -25,7 +25,7 @@ class CustomDataModule(pl.LightningDataModule):
         self.ratio = args.ratio
         self.per_device_train_batch_size = args.per_device_train_batch_size
         self.per_device_eval_batch_size = args.per_device_eval_batch_size
-        self.num_proc = args.num_proc
+        self.num_workers = args.num_workers
 
     def prepare_data(self):
         if not os.path.isfile("./valid.pt"):
@@ -59,7 +59,7 @@ class CustomDataModule(pl.LightningDataModule):
         #     dataset=self.train_datasets,
         #     batch_size=self.per_device_train_batch_size,
         #     sampler=train_sampler,
-        #     num_workers=self.num_proc,
+        #     num_workers=self.num_workers,
         #     pin_memory=True,
         # )
 
@@ -67,7 +67,7 @@ class CustomDataModule(pl.LightningDataModule):
         return DataLoader(
             dataset=self.train_datasets,
             batch_size=self.per_device_train_batch_size,
-            num_workers=self.num_proc,
+            num_workers=self.num_workers,
             pin_memory=True,
         )
 
@@ -75,7 +75,7 @@ class CustomDataModule(pl.LightningDataModule):
         return DataLoader(
             dataset=self.valid_datasets,
             batch_size=self.per_device_train_batch_size,
-            num_workers=self.num_proc,
+            num_workers=self.num_workers,
             pin_memory=True,
         )
 

@@ -7,16 +7,17 @@ from pytorch_lightning import LightningModule
 class LSTMModel(LightningModule):
     """LSTM sequence-to-sequence model for testing TBPTT with automatic optimization."""
 
-    def __init__(self, truncated_bptt_steps, valid_on_cpu):
+    def __init__(self, args):
         super().__init__()
-        self.valid_on_cpu = valid_on_cpu
+        self.save_hyperparameters(args)
+        self.args = args
         self.input_size = 1
         self.hidden_size = 8
         self.lstm = torch.nn.LSTM(input_size=self.input_size, hidden_size=self.hidden_size, batch_first=True)
         self.lstm2 = torch.nn.LSTM(input_size=self.input_size, hidden_size=self.hidden_size, batch_first=True)
         self.linear = torch.nn.Linear(self.hidden_size * 2, 1)
-        self.loss_func = MeanSquaredError(compute_on_cpu=self.valid_on_cpu)
-        self.truncated_bptt_steps = truncated_bptt_steps
+        self.loss_func = MeanSquaredError(compute_on_cpu=self.args.valid_on_cpu)
+        self.truncated_bptt_steps = self.args.truncated_bptt_steps
         self.automatic_optimization = True
 
     def configure_optimizers(self):
@@ -46,7 +47,7 @@ class LSTMModel(LightningModule):
 
     def validation_step(self, batch, batch_idx):
         x, y = batch
-        if self.valid_on_cpu:
+        if self.args.valid_on_cpu:
             x = x.cpu()
             y = y.cpu()
             self.cpu()
@@ -59,7 +60,7 @@ class LSTMModel(LightningModule):
     def validation_epoch_end(self, validation_step_outputs):
         for out in validation_step_outputs:
             loss = self.loss_func(out["pred"], out["labels"])
-        if self.valid_on_cpu:
+        if self.args.valid_on_cpu:
             # if ddp, each machine output must gather. and lightning can gather only on-gpu items
             self.log("val_loss", loss.cuda(), sync_dist=True)
             # model have to training_step on cuda
@@ -69,8 +70,12 @@ class LSTMModel(LightningModule):
 
     def train_dataloader(self):
         dataset = TensorDataset(torch.rand(50, 200, self.input_size), torch.rand(50, 200, self.input_size))
-        return DataLoader(dataset=dataset, batch_size=4)
+        return DataLoader(
+            dataset=dataset, num_workers=self.args.num_workers, batch_size=self.args.per_device_train_batch_size
+        )
 
     def val_dataloader(self):
         dataset = TensorDataset(torch.rand(50, 200, self.input_size), torch.rand(50, 200, self.input_size))
-        return DataLoader(dataset=dataset, batch_size=4)
+        return DataLoader(
+            dataset=dataset, num_workers=self.args.num_workers, batch_size=self.args.per_device_eval_batch_size
+        )

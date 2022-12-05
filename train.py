@@ -38,7 +38,7 @@ def main(hparams):
         wandb_logger.watch(model, log="all")
         trainer.fit(model, datamodule=ncf_datamodule)
     else:
-        model = LSTMModel(truncated_bptt_steps=hparams.truncated_bptt_steps, valid_on_cpu=hparams.valid_on_cpu)
+        model = LSTMModel(hparams)
         wandb_logger.watch(model, log="all")
         trainer.fit(model)
     # TODO If finetuning follow this line
@@ -60,7 +60,7 @@ if __name__ == "__main__":
     parser.add_argument("--data_dir", type=str, help="target pytorch lightning data dirs")
     parser.add_argument("--ratio", type=float, help="train/valid split ratio")
     parser.add_argument("--output_dir", type=str, help="model output path")
-    parser.add_argument("--num_proc", type=int, default=None, help="how many proc map?")
+    parser.add_argument("--num_workers", type=int, default=None, help="how many proc map?")
     parser.add_argument("--learning_rate", default=0.001, type=float, help="learning rate")
     parser.add_argument(
         "--warmup_ratio", default=0.2, type=float, help="learning rate scheduler warmup ratio per EPOCH"

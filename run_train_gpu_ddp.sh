@@ -7,7 +7,7 @@ torchrun --standalone --nnodes=1 --nproc_per_node=1 ./train.py \
     --output_dir="../models/" \
     --data_dir="" \
     --seed=42 \
-    --num_proc=12 \
+    --num_workers=12 \
     --per_device_train_batch_size=64 \
     --per_device_eval_batch_size=64 \
     --val_check_interval=0.25 \
