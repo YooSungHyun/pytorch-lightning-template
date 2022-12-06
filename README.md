@@ -23,7 +23,7 @@ https://docs.wandb.ai/v/ko/quickstart
 # Pytorch-Lightning Life Cycle
 ## Training
 1. train.py(main) -> argparse
-    - Unfortunately, Lightning is not supported argparse itself (like, HuggingFace's `HfArgumentParser`)
+    - using [simple_parsing library](https://github.com/lebrice/SimpleParsing) looks like HFArgumentParser
     - Trainer Argument placed with `pl.Trainer.add_argparse_args` (automatic define argparse)
 2. def] WandbLogger, set seed(os, random, np, torch, torch.cuda)
 3. def] CustomDataModule (`LightningDataModule`)
