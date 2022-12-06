@@ -1,5 +1,3 @@
-import argparse
-from utils import str2bool
 import pytorch_lightning as pl
 from pytorch_lightning.strategies import DDPStrategy
 from datetime import timedelta
@@ -9,6 +7,9 @@ from pytorch_lightning.callbacks import LearningRateMonitor
 from dense_model import CustomNet
 from rnn_model import LSTMModel
 from datamodule import CustomDataModule
+from simple_parsing import ArgumentParser
+from training_args import TrainingArguments
+from utils import dataclass_to_namespace
 
 
 def main(hparams):
@@ -53,36 +54,9 @@ def main(hparams):
 
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser()
+    parser = ArgumentParser()
     parser = pl.Trainer.add_argparse_args(parser)
-    parser.add_argument("--seed", default=None, type=int, help="all seed")
-    parser.add_argument("--local_rank", type=int, help="ddp local rank")
-    parser.add_argument("--data_dir", type=str, help="target pytorch lightning data dirs")
-    parser.add_argument("--ratio", type=float, help="train/valid split ratio")
-    parser.add_argument("--output_dir", type=str, help="model output path")
-    parser.add_argument("--num_workers", type=int, default=None, help="how many proc map?")
-    parser.add_argument("--learning_rate", default=0.001, type=float, help="learning rate")
-    parser.add_argument(
-        "--warmup_ratio", default=0.2, type=float, help="learning rate scheduler warmup ratio per EPOCH"
-    )
-    parser.add_argument("--max_lr", default=0.01, type=float, help="lr_scheduler max learning rate")
-    parser.add_argument("--div_factor", default=25, type=int, help="initial_lr = max_lr/div_factor")
-    parser.add_argument(
-        "--final_div_factor", default=1e4, type=int, help="(max_lr/div_factor)*final_div_factor is final lr"
-    )
-    parser.add_argument("--weight_decay", default=0.0001, type=float, help="weigth decay")
-    parser.add_argument(
-        "--per_device_train_batch_size", default=1, type=int, help="The batch size per GPU/TPU core/CPU for training."
-    )
-    parser.add_argument(
-        "--per_device_eval_batch_size", default=1, type=int, help="The batch size per GPU/TPU core/CPU for evaluation."
-    )
-    parser.add_argument("--input_dense_dim", default=512, type=int, help="input network dimension")
-    parser.add_argument("--output_dense_dim", default=256, type=int, help="output network dimension")
-    parser.add_argument(
-        "--valid_on_cpu", default=False, type=str2bool, help="If you want to run validation_step on cpu -> true"
-    )
-    parser.add_argument("--model_select", default="linear", type=str, help="linear or rnn")
-    parser.add_argument("--truncated_bptt_steps", default=1, type=int, help="TBPTT step size")
+    parser.add_arguments(TrainingArguments, dest="training_args")
     args = parser.parse_args()
+    args = dataclass_to_namespace(args, "training_args")
     main(args)

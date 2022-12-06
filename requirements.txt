@@ -8,3 +8,4 @@ flake8
 black
 tqdm
 scikit-learn
+simple_parsing==0.0.21
