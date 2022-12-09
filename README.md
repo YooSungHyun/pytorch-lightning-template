@@ -1,6 +1,7 @@
 # pytorch-lightning-template
 very simple but, write down is boring </br>
 boring boiling code rolling ⚡ </br>
+**If you need some function or someting, plz comment issues (plz write eng or ko). I reply and implement ASAP!!** </br>
 - DataModule more detail: [PyTorch-Lightning Dev Guide](https://pytorch-lightning.readthedocs.io/en/stable/data/datamodule.html)
 - Model more detail: [PyTorch-Lightning Dev Guide](https://pytorch-lightning.readthedocs.io/en/stable/common/lightning_module.html)
 - Inference more detail: [PyTorch-Lightning Dev Guide](https://pytorch-lightning.readthedocs.io/en/stable/deploy/production_intermediate.html)
