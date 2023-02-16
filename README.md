@@ -59,19 +59,7 @@ https://docs.wandb.ai/v/ko/quickstart
 4. simply torch inference & END!
 
 # (Optinal) Install DeepSpeed
-
-1. input command in your terminal
+1. run pip_install_deepspeed.sh
 ```
-CUDA_VISIBLE_DEVICES=0 python -c "import torch; print(torch.cuda.get_device_capability())"
--> (n, m)
-```
-2. edit shell_script/install_deepspeed.sh
-
-```
-TORCH_CUDA_ARCH_LIST="n.m"
-```
-
-3. run shell_script/install_deepspeed.sh
-```
-bash shell_script/install_deepspeed.sh
+bash pip_install_deepspeed.sh
 ```
