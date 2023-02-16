@@ -57,3 +57,21 @@ https://docs.wandb.ai/v/ko/quickstart
 2. set seed
 3. model load (second param is your model init param)
 4. simply torch inference & END!
+
+# (Optinal) Install DeepSpeed
+
+1. input command in your terminal
+```
+CUDA_VISIBLE_DEVICES=0 python -c "import torch; print(torch.cuda.get_device_capability())"
+-> (n, m)
+```
+2. edit shell_script/install_deepspeed.sh
+
+```
+TORCH_CUDA_ARCH_LIST="n.m"
+```
+
+3. run shell_script/install_deepspeed.sh
+```
+bash shell_script/install_deepspeed.sh
+```
