@@ -22,6 +22,7 @@ if [ $? -eq "0" ]; then
                 --model_select=rnn \
                 --truncated_bptt_steps=2
 fi
+
 if [ $? -eq "0" ]; then
         python3 ddp_inference_gather.py
 fi
