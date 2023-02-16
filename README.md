@@ -52,11 +52,25 @@ https://docs.wandb.ai/v/ko/quickstart
 9. make trainer to your arg
 10. training run and model save!
 
+### Training Script Usage
+1. cd your project root(./pytorch-lightning-template)
+```
+# Don't Script RUN in your scripts FOLDER!!!!! CHK PLZ!!!!!!!
+bash scripts/run_train_~~~.sh
+```
+
 ## Inference
 1. inference.py(main) -> argparse
 2. set seed
 3. model load (second param is your model init param)
 4. simply torch inference & END!
+
+### Inference Script Usage
+1. cd your project root(./pytorch-lightning-template)
+```
+# Don't Script RUN in your scripts FOLDER!!!!! CHK PLZ!!!!!!!
+bash scripts/run_inference~~~.sh
+```
 
 # (Optinal) Install DeepSpeed
 1. run pip_install_deepspeed.sh
