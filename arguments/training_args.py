@@ -7,9 +7,10 @@ class TrainingArguments:
 
     seed: int = None  # all seed
     local_rank: int = None  # ddp local rank
-    data_dir: str = "../datasets"  # target pytorch lightning data dirs
+    data_dir: str = "datasets"  # target pytorch lightning data dirs
     ratio: float = 0.2  # train/valid split ratio
-    output_dir: str = "../models"  # model output path
+    output_dir: str = "model_outputs"  # model output path
+    config_path: str = "config/dense_model.json"
     num_workers: int = None  # how many proc map?
     learning_rate: float = 0.001  # learning rate
     warmup_ratio: float = 0.2  # learning rate scheduler warmup ratio per EPOCH
@@ -19,8 +20,7 @@ class TrainingArguments:
     weight_decay: float = 0.0001  # weigth decay
     per_device_train_batch_size: int = 1  # The batch size per GPU/TPU core/CPU for training.
     per_device_eval_batch_size: int = 1  # The batch size per GPU/TPU core/CPU for evaluation.
-    input_dense_dim: int = 512  # input network dimension
-    output_dense_dim: int = 256  # output network dimension
     valid_on_cpu: bool = False  # If you want to run validation_step on cpu -> true
     model_select: str = "linear"  # linear or rnn
     truncated_bptt_steps: int = 1  # TBPTT step size
+    deepspeed_config: str = "ds_config/zero2.json"

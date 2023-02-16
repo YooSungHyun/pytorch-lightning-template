@@ -1,9 +1,9 @@
 import torch
 import pytorch_lightning as pl
-from dense_model import CustomNet
-from rnn_model import LSTMModel
-from utils import dataclass_to_namespace
-from inference_args import InferenceArguments
+from models.dense_model.model import CustomNet
+from models.rnn_model.model import LSTMModel
+from utils.compy import dataclass_to_namespace
+from arguments.inference_args import InferenceArguments
 from simple_parsing import ArgumentParser
 
 

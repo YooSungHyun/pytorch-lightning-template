@@ -9,7 +9,6 @@ class LSTMModel(LightningModule):
 
     def __init__(self, args):
         super().__init__()
-        self.save_hyperparameters(args)
         self.args = args
         self.input_size = 1
         self.hidden_size = 8
@@ -43,7 +42,9 @@ class LSTMModel(LightningModule):
         else:
             hiddens1 = None
             hiddens2 = None
+        self.lstm.flatten_parameters()
         lstm_last, hiddens1 = self.lstm(x, hiddens1)
+        self.lstm2.flatten_parameters()
         lstm2_last, hiddens2 = self.lstm2(x, hiddens2)
         concat_lstm = torch.concat([lstm_last, lstm2_last], dim=-1)
         logits = self.linear(concat_lstm)
@@ -69,7 +70,9 @@ class LSTMModel(LightningModule):
             x = x.cpu()
             y = y.cpu()
             self.cpu()
+        self.lstm.flatten_parameters()
         lstm_last, _ = self.lstm(x)
+        self.lstm2.flatten_parameters()
         lstm2_last, _ = self.lstm2(x)
         concat_lstm = torch.concat([lstm_last, lstm2_last], dim=-1)
         logits = self.linear(concat_lstm)
@@ -85,6 +88,11 @@ class LSTMModel(LightningModule):
             self.cuda()
         else:
             self.log("val_loss", loss, sync_dist=(self.device != "cpu"))
+
+    def predict_step(self, batch, batch_idx):
+        x, y = batch
+        logits = self(x)
+        return logits
 
     def train_dataloader(self):
         dataset = TensorDataset(torch.rand(2000, 200, self.input_size), torch.rand(2000, 200, self.input_size))

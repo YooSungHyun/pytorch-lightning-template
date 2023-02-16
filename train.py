@@ -1,21 +1,24 @@
+import os
+import json
 import pytorch_lightning as pl
 from pytorch_lightning.strategies import DDPStrategy
 from datetime import timedelta
 from pytorch_lightning.callbacks import ModelCheckpoint
 from pytorch_lightning.loggers import WandbLogger
 from pytorch_lightning.callbacks import LearningRateMonitor
-from dense_model import CustomNet
-from rnn_model import LSTMModel
-from datamodule import CustomDataModule
+from models.dense_model.model import CustomNet
+from models.rnn_model.model import LSTMModel
+from models.dense_model.datamodule import CustomDataModule
 from simple_parsing import ArgumentParser
-from training_args import TrainingArguments
-from utils import dataclass_to_namespace
+from arguments.training_args import TrainingArguments
+from utils.compy import dataclass_to_namespace
+from utils.config_loader import load_config, config_to_dict
 
 
 def main(hparams):
     wandb_logger = WandbLogger(project="lightning-template", name="default", save_dir="./")
     pl.seed_everything(hparams.seed)
-
+    os.makedirs(hparams.output_dir, exist_ok=True)
     hparams.logger = wandb_logger
 
     checkpoint_callback = ModelCheckpoint(
@@ -28,16 +31,33 @@ def main(hparams):
     lr_monitor = LearningRateMonitor(logging_interval="step")
     hparams.callbacks = [checkpoint_callback, lr_monitor]
 
-    if hparams.strategy == "ddp":
+    if hparams.accelerator == "cpu" and hparams.valid_on_cpu is True:
+        print("If you run on cpu, valid must go on cpu, It set automatically")
+        hparams.valid_on_cpu = False
+    elif hparams.strategy == "ddp":
         hparams.strategy = DDPStrategy(timeout=timedelta(days=30))
+    elif hparams.strategy == "deepspeed_stage_2":
+        if hparams.deepspeed_config is not None:
+            from pytorch_lightning.strategies import DeepSpeedStrategy
 
+            hparams.strategy = DeepSpeedStrategy(config=hparams.deepspeed_config)
+    elif hparams.accelerator != "cpu" and (hparams.strategy is not None and "deepspeed" in hparams.strategy):
+        raise NotImplementedError("If you want to another deepspeed option and config, PLZ IMPLEMENT FIRST!!")
     trainer = pl.Trainer.from_argparse_args(hparams)
 
     if hparams.model_select == "linear":
-        ncf_datamodule = CustomDataModule(hparams)
+        datamodule = CustomDataModule(hparams)
         model = CustomNet(hparams)
         wandb_logger.watch(model, log="all")
-        trainer.fit(model, datamodule=ncf_datamodule)
+        trainer.fit(model, datamodule=datamodule)
+        """ TODO If use config like dict follow this line
+        but, model param is duplicated area between training param and model param
+        I want to get training param on run script argument, so I can not use it
+        """
+        # config_cls = load_config(hparams.config_dir)
+        # config = config_to_dict(config_cls)
+        # with open(os.path.join(hparams.output_dir, "config.json"), "w") as f:
+        # json.dump(config, f, ensure_ascii=False, indent=4)
     else:
         model = LSTMModel(hparams)
         wandb_logger.watch(model, log="all")

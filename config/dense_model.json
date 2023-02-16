@@ -1,0 +1,6 @@
+{
+    "model": {
+        "input_dense_dim": 512,
+        "output_dense_dim": 256
+    }
+}

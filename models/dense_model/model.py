@@ -2,24 +2,25 @@ import torch
 import pytorch_lightning as pl
 from torchmetrics import MeanSquaredError
 from torch import nn
+from utils.config_loader import load_config
 
 
 class CustomNet(pl.LightningModule):
     def __init__(self, args):
         super().__init__()
-        self.save_hyperparameters(args)
         self.args = args
+        config_cls = load_config(args.config_path)
         self.loss_func = MeanSquaredError(compute_on_cpu=self.args.valid_on_cpu)
         # TODO: Write down your network
         self.dense_batch_fc_tanh = nn.Sequential(
-            nn.Linear(args.input_dense_dim, args.output_dense_dim),
-            nn.BatchNorm1d(args.output_dense_dim),
+            nn.Linear(config_cls.model.input_dense_dim, config_cls.model.output_dense_dim),
+            nn.BatchNorm1d(config_cls.model.output_dense_dim),
             nn.Tanh(),
-            nn.Linear(args.output_dense_dim, (args.output_dense_dim // 2)),
-            nn.BatchNorm1d((args.output_dense_dim // 2)),
+            nn.Linear(config_cls.model.output_dense_dim, (config_cls.model.output_dense_dim // 2)),
+            nn.BatchNorm1d((config_cls.model.output_dense_dim // 2)),
             nn.Tanh(),
         )
-        self.fc = nn.Linear(args.output_dense_dim // 2, 1)
+        self.fc = nn.Linear(config_cls.model.output_dense_dim // 2, 1)
 
     def forward(self, features):
         outputs = self.dense_batch_fc_tanh(features)
@@ -63,6 +64,11 @@ class CustomNet(pl.LightningModule):
         else:
             self.log("val_loss", loss_mean, sync_dist=(self.device != "cpu"))
         # self.log_dict(metrics, sync_dist=(self.device != "cpu"))
+
+    def predict_step(self, batch, batch_idx):
+        features, labels, feature_lengths, label_lengths = batch
+        logits = self(features)
+        return logits
 
     def configure_optimizers(self):
         optimizer = torch.optim.AdamW(
