@@ -72,7 +72,7 @@ bash scripts/run_train_~~~.sh
 bash scripts/run_inference~~~.sh
 ```
 
-# (Optinal) Install DeepSpeed
+# (Optional) Install DeepSpeed
 1. run pip_install_deepspeed.sh
 ```
 bash pip_install_deepspeed.sh
