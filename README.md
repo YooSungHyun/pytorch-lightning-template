@@ -64,6 +64,10 @@ if "do" in self.drop_scheduler:
 
 
 ### If you want to use, normal style dropout, input dropout_p and `drop_mode=standard` (default) and `drop_schedule=constant` (default)
+you can check your dropout scheduling process in wandb
+
+![image](https://user-images.githubusercontent.com/34292279/224522943-37e5779a-3f40-44c0-8aec-5a13f84ff47c.png)
+
 
 # pytorch-lightning-template
 
