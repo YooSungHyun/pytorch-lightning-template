@@ -9,26 +9,58 @@ class CustomNet(pl.LightningModule):
     def __init__(self, args):
         super().__init__()
         self.args = args
+        self.drop_scheduler = None
+        self.drop_rate = args.dropout_p
         config_cls = load_config(args.config_path)
-        self.loss_func = MeanSquaredError(compute_on_cpu=self.args.valid_on_cpu)
+        self.loss_func = MeanSquaredError(compute_on_cpu=args.valid_on_cpu)
         # TODO: Write down your network
         self.dense_batch_fc_tanh = nn.Sequential(
             nn.Linear(config_cls.model.input_dense_dim, config_cls.model.output_dense_dim),
             nn.BatchNorm1d(config_cls.model.output_dense_dim),
             nn.Tanh(),
+            nn.Dropout(self.drop_rate),
             nn.Linear(config_cls.model.output_dense_dim, (config_cls.model.output_dense_dim // 2)),
             nn.BatchNorm1d((config_cls.model.output_dense_dim // 2)),
             nn.Tanh(),
+            nn.Dropout(self.drop_rate),
         )
         self.fc = nn.Linear(config_cls.model.output_dense_dim // 2, 1)
+
+    def update_dropout(self, drop_rate):
+        self.drop_rate = drop_rate
+        for module in self.modules():
+            if isinstance(module, nn.Dropout):
+                module.p = drop_rate
 
     def forward(self, features):
         outputs = self.dense_batch_fc_tanh(features)
         logits = self.fc(outputs)
         return logits
 
+    def on_train_start(self):
+        from models.dense_model.drop_scheduler import drop_scheduler
+
+        self.drop_scheduler = {}
+        if self.args.dropout_p > 0.0:
+            self.drop_scheduler["do"] = drop_scheduler(
+                self.args.dropout_p,
+                self.args.max_epochs,
+                self.trainer.num_training_batches,
+                self.args.cutoff_epoch,
+                self.args.drop_mode,
+                self.args.drop_schedule,
+            )
+            print(
+                "on_train_start :: Min DO = %.7f, Max DO = %.7f"
+                % (min(self.drop_scheduler["do"]), max(self.drop_scheduler["do"]))
+            )
+
     def training_step(self, batch, batch_idx):
         features, labels, feature_lengths, label_lengths = batch
+        if "do" in self.drop_scheduler:
+            dropout_p = self.drop_scheduler["do"][self.trainer.global_step]
+            self.update_dropout(dropout_p)
+            self.log("dropout_p", dropout_p, sync_dist=(self.device != "cpu"))
         logits = self(features)
         loss = self.loss_func(logits, labels)
         self.log("train_loss", loss, sync_dist=(self.device != "cpu"))

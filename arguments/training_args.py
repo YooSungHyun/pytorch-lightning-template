@@ -1,4 +1,5 @@
 from dataclasses import dataclass
+import simple_parsing as sp
 
 
 @dataclass
@@ -24,3 +25,9 @@ class TrainingArguments:
     model_select: str = "linear"  # linear or rnn
     truncated_bptt_steps: int = 1  # TBPTT step size
     deepspeed_config: str = "ds_config/zero2.json"
+    dropout_p: float = 0.0  # Drop path rate (default: 0.0)
+    cutoff_epoch: int = 0  # if drop_mode is early / late, this is the epoch where dropout ends / starts
+    drop_mode: str = sp.field(default="standard", choices=["standard", "early", "late"])  # drop mode
+    drop_schedule: str = sp.field(
+        default="constant", choices=["constant", "linear"]
+    )  # drop schedule for early dropout / s.d. only

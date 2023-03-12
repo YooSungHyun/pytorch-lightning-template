@@ -7,12 +7,11 @@ from pytorch_lightning.callbacks import ModelCheckpoint
 from pytorch_lightning.loggers import WandbLogger
 from pytorch_lightning.callbacks import LearningRateMonitor
 from models.dense_model.model import CustomNet
-from models.rnn_model.model import LSTMModel
 from models.dense_model.datamodule import CustomDataModule
+from models.rnn_model.model import LSTMModel
 from simple_parsing import ArgumentParser
 from arguments.training_args import TrainingArguments
-from utils.compy import dataclass_to_namespace
-from utils.config_loader import load_config, config_to_dict
+from utils.comfy import dataclass_to_namespace
 
 
 def main(hparams):

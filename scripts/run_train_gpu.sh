@@ -26,4 +26,8 @@ python3 ./train.py \
     --div_factor=10 \
     --final_div_factor=10 \
     --valid_on_cpu=false \
-    --model_select=linear
+    --model_select=linear \
+    --dropout_p=0.1 \
+    --cutoff_epoch=1 \
+    --drop_mode=standard \
+    --drop_schedule=constant
